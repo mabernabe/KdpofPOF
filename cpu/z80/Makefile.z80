@@ -18,7 +18,7 @@ CUSTOM_RULE_LINK=1
 ## This works
 CFLAGS  += --debug -Dint="volatile int" -D__PERIDOT -Dchar="volatile char" --fverbose-asm -mz80 -c 
 
-#CFLAGS += --no-peep --no-peep-return --nooverlay --nogcse --noinduction --noinvariant --noloopreverse --opt-code-size 
+CFLAGS += --no-peep --no-peep-return --nooverlay --nogcse --noinduction --noinvariant --noloopreverse --opt-code-size 
 
 ## This is the one testing
 #CFLAGS  += --debug --less-pedantic --fno-omit-frame-pointer --nojtbound --nolabelopt --nolospre 

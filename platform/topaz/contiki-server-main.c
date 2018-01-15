@@ -8,7 +8,7 @@
 #include "dhcp_process.h"
 #include "ethernet_driver.h"
 //#include "webserver-nogui.h"
-#include "is-alive.h"
+//#include "is-alive.h"
 #include "igmp.h"
 #include "telnetd.h"
 #include "contiki-global.h"
@@ -122,7 +122,7 @@ int main(void) {
   /* start services */
   process_start(&etimer_process, NULL);
   ll_putchar('A');
-  process_start(&is_alive_process, NULL); // For debugging
+  //process_start(&is_alive_process, NULL); // For debugging
   ll_putchar('B');
 
   process_start(&tcpip_process, NULL);

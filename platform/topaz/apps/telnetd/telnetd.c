@@ -118,7 +118,7 @@ buf_append(struct telnetd_buf *buf, const char *data, int len)
 {
   int copylen;
 
-  PRINTF("buf_append len %d (%d) '%.*s'\n", len, buf->ptr, len, data);
+  PRINTF("buf_append len %d (0x%x) %d '%s'\r\n", len, buf->ptr, len, data);
   copylen = MIN(len, buf->size - buf->ptr);
   memcpy(&buf->bufmem[buf->ptr], data, copylen);
   petsciiconv_toascii(&buf->bufmem[buf->ptr], copylen);
@@ -138,7 +138,7 @@ buf_pop(struct telnetd_buf *buf, int len)
 {
   int poplen;
 
-  PRINTF("buf_pop len %d (%d)\n", len, buf->ptr);
+  PRINTF("buf_pop len %d (0x%x)\r\n", len, buf->ptr);
   poplen = MIN(len, buf->ptr);
   memcpy(&buf->bufmem[0], &buf->bufmem[poplen], buf->ptr - poplen);
   buf->ptr -= poplen;
@@ -168,7 +168,7 @@ senddata(void)
 {
   int len;
   len = MIN(buf_len(&buf), uip_mss());
-  PRINTF("senddata len %d\n", len);
+  PRINTF("senddata len %d\r\n", len);
   buf_copyto(&buf, uip_appdata, len);
   uip_send(uip_appdata, len);
   s.numsent = len;
@@ -178,7 +178,7 @@ static void
 get_char(uint8_t c)
 {
   int i = 0;
-  PRINTF("telnetd: get_char '%c' %d %d\n", c, c, s.bufptr);
+  PRINTF("telnetd: get_char '%c' %d 0x%x\r\n", c, c, s.bufptr);
 
   if(c == 0) {
     return;
@@ -194,7 +194,6 @@ get_char(uint8_t c)
       s.buf[(int)s.bufptr] = 0;
     }
     petsciiconv_topetscii(s.buf, TELNETD_CONF_LINELEN);
-    ll_printf("telnetd: get_char '%.*s'\n", s.bufptr, s.buf);
     // shell_input(s.buf, s.bufptr);
     // printf("%.*s", s.bufptr, s.buf); This doesn't work with my sdcc version
 
@@ -225,12 +224,11 @@ newdata(void)
   uint8_t *ptr;
     
   len = uip_datalen();
-  ll_printf("newdata len %d '%.*s'\n", len, len, (char *)uip_appdata);
 
   ptr = uip_appdata;
   while(len > 0 && s.bufptr < sizeof(s.buf)) {
     c = *ptr;
-    PRINTF("newdata char '%c' %d %d state %d\n", c, c, len, s.state);
+    PRINTF("newdata char %c %d %d state 0x%x\r\n", c, c, len, s.state);
     ++ptr;
     --len;
     switch(s.state) {
@@ -295,6 +293,7 @@ telnetd_appcall(void *ts)
 {
   if(uip_connected()) {
     if(!connected) {
+      ll_printf("New telnet connection\r\n");	    	
       buf_init(&buf);
       s.bufptr = 0;
       s.state = STATE_NORMAL;
@@ -303,6 +302,7 @@ telnetd_appcall(void *ts)
       timer_set(&s.silence_timer, MAX_SILENCE_TIME);
       ts = (char *)0;
     } else {
+      ll_printf("New telnet try. Rejecting.\r\n");	    	
       uip_send(telnetd_reject_text, strlen(telnetd_reject_text));
       ts = (char *)1;
     }
@@ -319,6 +319,7 @@ telnetd_appcall(void *ts)
        uip_aborted() ||
        uip_timedout()) {
       connected = 0;
+      ll_printf("Telnet disconnected\r\n");	    	
     }
     if(uip_acked()) {
       timer_set(&s.silence_timer, MAX_SILENCE_TIME);

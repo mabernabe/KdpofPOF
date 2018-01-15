@@ -114,9 +114,8 @@ void putchar(char c){
 #else
 	if (connected) {
 		telnet_putchar(c);
-	} else {
-		IO_putchar(c);
 	}	
+	IO_putchar(c);
 #endif
 }
 

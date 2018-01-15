@@ -791,11 +791,13 @@ tcpip_uipcall(void)
     process_post_synch(ts->p, tcpip_event, ts->state);
   }
 }
+void ll_putchar(char);
 /*---------------------------------------------------------------------------*/
 PROCESS_THREAD(tcpip_process, ev, data)
 {
   PROCESS_BEGIN();
   
+//ll_putchar('t'); ll_putchar('0');
 #if UIP_TCP
  {
    static unsigned char i;
@@ -807,13 +809,17 @@ PROCESS_THREAD(tcpip_process, ev, data)
  }
 #endif
 
+//ll_putchar('t'); ll_putchar('1');
   tcpip_event = process_alloc_event();
 #if UIP_CONF_ICMP6
   tcpip_icmp6_event = process_alloc_event();
 #endif /* UIP_CONF_ICMP6 */
+//ll_putchar('t'); ll_putchar('2');
   etimer_set(&periodic, CLOCK_SECOND / 2);
 
+//ll_putchar('t'); ll_putchar('3');
   uip_init();
+//ll_putchar('t'); ll_putchar('4');
 #ifdef UIP_FALLBACK_INTERFACE
   UIP_FALLBACK_INTERFACE.init();
 #endif

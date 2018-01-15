@@ -173,11 +173,19 @@ add_timer(struct etimer *timer)
   update_time();
 }
 /*---------------------------------------------------------------------------*/
+void ll_putchar(char);
 void
 etimer_set(struct etimer *et, clock_time_t interval)
 {
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('0');
   timer_set(&et->timer, interval);
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('1');
   add_timer(et);
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('2');
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('3');
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('4');
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('5');
+//  ll_putchar('e'); ll_putchar('t'); ll_putchar('6');
 }
 /*---------------------------------------------------------------------------*/
 void

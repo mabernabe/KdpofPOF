@@ -1,0 +1,12 @@
+webserver-mini_src = webserver-nogui.c httpd.c http-strings.c psock.c memb.c httpd-fs.c httpd-cgi.c
+
+#Run makefsdata to regenerate httpd-fsdata.c when web content has been edited. This requires PERL.
+#  Note: Deleting files or transferring pages from makefsdata.ignore will not trigger this rule
+#        when there is no change in modification dates.
+
+$(PLATFORM)/apps/webserver-mini/httpd-fsdata.c : $(PLATFORM)/apps/webserver-mini/httpd-fs/*.*
+	$(CONTIKI)/tools/makefsdata -d apps/webserver-mini/httpd-fs -o apps/webserver-mini/httpd-fsdata.c
+	
+#Rebuild httpd-fs.c when makefsdata has changed httpd-fsdata.c
+$(PLATFORM)/apps/webserver-mini/httpd-fs.c: $(PLATFORM)/apps/webserver-mini/httpd-fsdata.c
+	touch apps/webserver-mini/httpd-fs.c

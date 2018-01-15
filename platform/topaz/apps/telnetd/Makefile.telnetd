@@ -1,0 +1,1 @@
+telnetd_src = telnetd.c memb.c list.c random.c

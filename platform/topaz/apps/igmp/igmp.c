@@ -58,7 +58,21 @@ void igmp_init() {
 	val = val & 0xFFF3;
 	PortWrite(0x5, 4, val | 0x040C);
 	// write("0x5 0x4: 0x%04X\n", PortRead(0x5, 4));
+	
+	//	Set SGMII AutoNegotiation
+	//val = IntC45Read(21, 4, 0x2000);
+	val = C45RegRead(21, 4, 0x2000,0);
+	val = val | 0x1000;
+	//writeline("0x2000: 0x%04X", val);
+	//IntC45Write(21, 4, 0x2000, val);
+	C45RegWrite(21, 4, 0x2000, val,0)
 
+        // Enable and disable PHY for starting AutoNeg
+	val=PortRead(PORT5,0);
+	val = val & 0xEFFF;
+	PortWrite(PORT5,0,val);
+	PortWrite(PORT5,0,val|0x1000)
+	
 	// Define Egress header and limit Multicast packets (No STP, .... )
 	val = PortRead(0x6,4);
 	PortWrite(0x16, 4, (val & 0xFFF3) | 0x0004);

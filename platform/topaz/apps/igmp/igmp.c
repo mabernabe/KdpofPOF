@@ -75,7 +75,7 @@ void igmp_init() {
 	
 	// Define Egress header and limit Multicast packets (No STP, .... )
 	val = PortRead(0x6,4);
-	PortWrite(0x6, 4, (val & 0xFFF3) | 0x0004);
+	PortWrite(0x6, 4, (val & 0xFFF3) | 0x000C);
 
 	// Enable broadcast flood
 	//G2Write(0x5, G2Read(0x5) | 0x1000);

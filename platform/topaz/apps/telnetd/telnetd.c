@@ -102,7 +102,7 @@ static struct telnetd_buf buf;
 //static uint8_t connected;
 uint8_t connected;
 
-#define MAX_SILENCE_TIME (CLOCK_SECOND * 30)
+#define MAX_SILENCE_TIME (CLOCK_SECOND * 120)
 
 #define MIN(a, b) ((a) < (b)? (a): (b))
 /*---------------------------------------------------------------------------*/

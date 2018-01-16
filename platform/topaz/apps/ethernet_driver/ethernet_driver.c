@@ -7,12 +7,16 @@
 
 #include <mio.h>
 #include <stdio.h>
+#include <ethernet_driver.h>
 
 // #define ethRxBuffer ((unsigned char*) 0xE000)
 // #define ethTxBuffer ((unsigned char*) 0xE600)
 
 static unsigned char ethRxBuffer[1530];
 static unsigned char ethTxBuffer[1530];
+
+static unsigned long numPckTx;
+static unsigned long numPckRx;
 
 
 PROCESS(ethernet_driver_process, "Ethernet driver");
@@ -76,6 +80,13 @@ void port_to_bitmask(unsigned char* port) {
   }
 }
 
+void printEthInfo(void) {
+	printf("Eth information\r\n");
+	printf("---------------\r\n");
+	printf("Num Packets Tx: %d\r\n", numPckTx);
+	printf("Num Packets Rx: %d\r\n", numPckRx);
+}
+
 // Pre: the packet to send is ethernet and starts in uip_buf[0] with an extra byte at the beginning 
 // IN FORM OF BITMASK and has no CRC. uip_len has a proper value, including the port byte.
 uint8_t send_packet_ethernet() {
@@ -87,6 +98,7 @@ uint8_t send_packet_ethernet() {
   ethTxBuffer[0] = 0x0D; //Priority
 //  set_busy_Tx();
   ETH_NIC_TX = ETH_NIC_TX | 0x01;
+  numPckTx++;
   return 0;
 }
 
@@ -118,6 +130,7 @@ static void check_packet() {
   // write("Checking if we have received a packet");
   read_packet();
   if(uip_len > 0) {
+    numPckRx++;
     if(PACKET->type == UIP_HTONS(UIP_ETHTYPE_IP)) {
       uip_arp_ipin();
       uip_input();
@@ -136,6 +149,9 @@ static void check_packet() {
 
 static void init_driver() {
   uip_arp_init();
+
+  numPckTx=0;
+  numPckRx=0;
 
   PortWrite(0x6,4, PortRead(0x6,4)|0x0803); // Enable z80 port; Define por header
 
@@ -167,12 +183,19 @@ PROCESS_THREAD(ethernet_driver_process, ev, data) {
 
   process_poll(&ethernet_driver_process);
 
-  PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_EXIT);
+  while (1)
+  {
+    PROCESS_WAIT_EVENT();
 
-//  disable_Tx();
-  ETH_NIC_TX = ETH_NIC_TX & 0xFB;
-//  disable_Rx();
-  ETH_NIC_RX = ETH_NIC_RX & 0xFB;
+    if (ev == PROCESS_EVENT_EXIT) {
+//     disable_Tx();
+       ETH_NIC_TX = ETH_NIC_TX & 0xFB;
+//     disable_Rx();
+       ETH_NIC_RX = ETH_NIC_RX & 0xFB;
 
+     } else if (ev == ETH_INFO) {
+       printEthInfo();
+     }
+  }
   PROCESS_END();
 }

@@ -16,7 +16,7 @@ static volatile int first;
 static volatile int last;
 
 unsigned char write_busy() {
-	return COMM_STATUS & 0x10;
+	return (COMM_STATUS & 0x10)==0x10;
 }
 
 int ll_printf (const char *format, ...)

@@ -5,7 +5,9 @@
 
 PROCESS_NAME(ethernet_driver_process);
 
-void send_packet_ip();
-void send_packet_ethernet();
+uint8_t send_packet_ip();
+uint8_t send_packet_ethernet();
+
+#define ETH_INFO 2
 
 #endif

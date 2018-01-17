@@ -380,7 +380,7 @@ uip_arp_out(void)
   /* First check if destination is a local broadcast. */
   if(uip_ipaddr_cmp(&IPBUF->destipaddr, &uip_broadcast_addr)) {
     memcpy(IPBUF->ethhdr.dest.addr, broadcast_ethaddr.addr, 6);
-    IPBUF->ethhdr.port = 0x1F; // Send through all the ports.
+    IPBUF->ethhdr.port = 0x3F; // Send through all the ports.
   } else if(IPBUF->destipaddr.u8[0] == 224) {
     /* Multicast. */
     IPBUF->ethhdr.dest.addr[0] = 0x01;
@@ -389,7 +389,7 @@ uip_arp_out(void)
     IPBUF->ethhdr.dest.addr[3] = IPBUF->destipaddr.u8[1];
     IPBUF->ethhdr.dest.addr[4] = IPBUF->destipaddr.u8[2];
     IPBUF->ethhdr.dest.addr[5] = IPBUF->destipaddr.u8[3];
-    IPBUF->ethhdr.port = 0x1F; //Send through all the ports since we don't know for which we should send it
+    IPBUF->ethhdr.port = 0x3F; //Send through all the ports since we don't know for which we should send it
   } else {
     /* Check if the destination address is on the local network. */
     if(!uip_ipaddr_maskcmp(&IPBUF->destipaddr, &uip_hostaddr, &uip_netmask)) {
@@ -412,7 +412,7 @@ uip_arp_out(void)
       /* The destination address was not in our ARP table, so we
 	 overwrite the IP packet with an ARP request. */
 
-      BUF->ethhdr.port = 0x1F; //Send through all the ports since we don't know for which we should send it
+      BUF->ethhdr.port = 0x3F; //Send through all the ports since we don't know for which we should send it
       memset(BUF->ethhdr.dest.addr, 0xff, 6);
       memset(BUF->dhwaddr.addr, 0x00, 6);
       memcpy(BUF->ethhdr.src.addr, uip_lladdr.addr, 6);

@@ -9,7 +9,9 @@ CONTIKI = ../..
 TARGET = topaz
 
 APPS 			= program-handler
-PLATFORM_APPS 	= is-alive dhcp ethernet_driver webserver-mini igmp telnetd shell
+
+PLATFORM_APPS 	= is-alive announce dhcp ethernet_driver webserver-mini igmp telnetd shell
+
 CONTIKI_TARGET_MAIN = contiki-server-main.c
 
 all: main.ihx

@@ -75,8 +75,8 @@ void isrTx() __critical __interrupt {
 }
 
 void port_to_bitmask(unsigned char* port) {
-  if(*port != 0x1F) {
-    *port = 1 << (0x1F & *port);
+  if(*port != 0x3F) {
+    *port = 1 << (0x3F & *port);
   }
 }
 
@@ -102,8 +102,12 @@ uint8_t send_packet_ethernet() {
   return 0;
 }
 
+void ll_putchar(char);
+
 uint8_t send_packet_ip() {
+//  ll_putchar('s');
   uip_arp_out();
+//  ll_putchar('0'+uip_buf[0]);
   port_to_bitmask(&uip_buf[0]);
   return send_packet_ethernet();
 }

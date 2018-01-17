@@ -11,6 +11,7 @@
 //#include "is-alive.h"
 #include "igmp.h"
 #include "telnetd.h"
+#include "announce.h"
 #include "contiki-global.h"
 
 #include <mio.h>
@@ -112,6 +113,9 @@ int main(void) {
   ll_putchar('8');
   write("\n------------------");
   write("Initializing contiki");
+  printf("Size of int   = %d\r\n", sizeof(int));
+  printf("Size of char  = %d\r\n", sizeof(char));
+  printf("Size of short = %d\r\n", sizeof(short));
 
   uip_setethaddr(eth_addr);
   // uip_sethostaddr(&host_addr); // Only necessary when not using dhcp
@@ -135,8 +139,10 @@ int main(void) {
   ll_putchar('F');
   process_start(&telnetd_process, NULL);
   ll_putchar('G');
-  process_start(&ethernet_driver_process, NULL); // This order is important
+  process_start(&announce_process, NULL);
   ll_putchar('H');
+  process_start(&ethernet_driver_process, NULL); // This order is important
+  ll_putchar('I');
   ll_putchar('\r');
   ll_putchar('\n');
 

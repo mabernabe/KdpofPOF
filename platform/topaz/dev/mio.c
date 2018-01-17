@@ -39,6 +39,32 @@ void ll_putchar(char c) {
 	COMM_WR_DATA = c;
 }
 
+void ll_printPck(char *data, int len) {
+  int i,j;
+  char c;
+  for (i=0; i<len; i++) {
+    if (i%16==0) { ll_putchar(0x0a); ll_putchar(0x0d); } else ll_putchar(' ');
+    c = (data[i]&0xF0)>>4; 
+    if (c<10) c = c + '0'; else c = c + 'A' - 10;
+    ll_putchar(c);
+    c = (data[i]&0x0F); 
+    if (c<10) c = c + '0'; else c = c + 'A' - 10;
+    ll_putchar(c);
+    if ((i+1)%16==0) { 
+      ll_putchar(' ');
+      for (j=i-15; j<=i; j++) {
+        c = data[j];
+	if (c<32 | c>127) ll_putchar('.'); else ll_putchar(c);
+      }
+    }
+  }
+  for (j=16*(i/16); j<i; j++) {
+    c = data[j];
+    if (c<32 | c>127) ll_putchar('.'); else ll_putchar(c);
+  }
+  ll_putchar(0x0a); ll_putchar(0x0d);
+}
+
 void isrT1() __critical __interrupt {
 	unsigned char ctl;
 	ctl = TIMER1_CTL;

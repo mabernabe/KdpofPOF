@@ -51,7 +51,8 @@
 #include <imp_io.h>
 #include <uip.h>
 
-extern unsigned char fw_version[2];
-extern char serial_number[7];
+extern unsigned char fw_version[];
+extern char serial_number[];
+extern uip_lladdr_t eth_addr;
 
 #endif /* __CONTIKI_GLOBAL_H__ */

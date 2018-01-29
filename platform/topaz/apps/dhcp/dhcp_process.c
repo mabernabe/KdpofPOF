@@ -10,6 +10,7 @@ void dhcpc_configured(const struct dhcpc_state *s) {
   uip_setnetmask(&s->netmask);
   uip_setdraddr(&s->default_router);
   write("IP assigned");
+  printf("Time: %ld ms\n", clock_time());
   printf("MAC: %02X:%02X:%02X:%02X:%02X:%02X\n", uip_lladdr.addr[0],uip_lladdr.addr[1],
                                                  uip_lladdr.addr[2],uip_lladdr.addr[3],
                                                  uip_lladdr.addr[4],uip_lladdr.addr[5] );

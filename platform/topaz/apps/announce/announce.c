@@ -7,6 +7,7 @@
 #include "clock.h"
 #include "announce.h"
 #include "uip.h"
+#include "igmp.h"
 #include "simple-udp.h"
 #include "contiki-global.h"
 
@@ -18,7 +19,7 @@ PROCESS(announce_process, "Announce process");
 #define UDP_PORT 9875
 
 #define SEND_INTERVAL		(5 * CLOCK_SECOND)
-#define SEND_TIME		(random_rand() % (SEND_INTERVAL))
+#define SEND_TIME		(random_rand() % (SEND_INTERVAL-CLOCK_SECOND))
 
 static struct simple_udp_connection broadcast_connection;
 
@@ -51,51 +52,96 @@ receiver(struct simple_udp_connection *c,
 
 static int pof_info(char *buff) {
 
-	signed short lm;
+	signed short lm, lmr;
 	unsigned short reg;
 	char aux[80];
+	int cnt=0;
 
 	buff[0]=0;
 
-	sprintf(aux,"POF Information\r\n");
+	sprintf(aux,"v=0\r\n");
 	strcat(buff, aux);
-	sprintf(aux,"===============\r\n");
+	sprintf(aux,"o=Movistar FW: %d.%d SN: %s MAC: %02x:%02x:%02x:%02x:%02x:%02x\r\n", 
+			fw_version[0], fw_version[1], serial_number, 
+			eth_addr.addr[0], eth_addr.addr[1],
+			eth_addr.addr[2], eth_addr.addr[3],
+			eth_addr.addr[4], eth_addr.addr[5] 
+			);
 	strcat(buff, aux);
-	sprintf(aux,"Port 0x10\r\n");
-	strcat(buff, aux);
-	sprintf(aux,"    Link:        %d\r\n", (ExtC22Read(0x10, 1)&0x4)==0x4);
-	strcat(buff, aux);
-
-	lm = ExtC22Read(0x10, 19)&0x0FFF;
-	if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
-	lm=lm/3;
-	sprintf(aux, "    Link Margin: %d.%d dB\r\n", lm/256, lm>=0 ? ((lm&0xFF)*100)/256 : ((-lm)&0xFF)*100)/256;
+	sprintf(aux,"t=time: %ld ms\r\n", clock_time());
 	strcat(buff, aux);
 
+	sprintf(aux,"m=Right POF Port\r\n");
+	strcat(buff, aux);
 	ExtC22Write(0x10,13,0x001E);
 	ExtC22Write(0x10,14,0x0214);
 	ExtC22Write(0x10,13,0x401E);
 	reg = ExtC22Read(0x10, 14);
-	sprintf(aux, "    Sync       : 0x%x\r\n", reg);
-	strcat(buff, aux);
+	if (reg==0) {
+	  sprintf(aux, "a=Unconnected\r\n");
+	  strcat(buff, aux);
+	} else {
+          reg = (ExtC22Read(0x10, 1)&0x4)==0x4;
+	  if (reg) {
+	    lm = ExtC22Read(0x10, 19)&0x0FFF;
+	    if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
+	    lm=lm/3;
 
-	sprintf(aux, "Port 0x15\r\n");
-	strcat(buff, aux);
-	sprintf(aux, "    Link:        %d\r\n", (ExtC22Read(0x15, 1)&0x4)==0x4);
-	strcat(buff, aux);
+	    ExtC22Write(0x10, 29, 0x8813);  // Ask partner
+	    while (ExtC22Read(0x10, 29)&0x8000) {} // Wait answer
+	    lmr = ExtC22Read(0x10, 30)&0x0FFF;  // Read result
+	    if ((lmr&0x800)==0x800) lmr = lmr | 0xF000; // Sign extension
+	    lmr=lmr/3;
+	    sprintf(aux, "a=Link OK Margin: %d.%d / %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256, 
+	                                                           lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
+	    strcat(buff, aux);
+	  } else {
+	    sprintf(aux, "a=NO LINK\r\n");
+	    strcat(buff, aux);
+	  }
+	}
 
-	lm = ExtC22Read(0x15, 19)&0x0FFF;
-	if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
-	lm=lm/3;
-	sprintf(aux, "    Link Margin: %d.%d dB\r\n", lm/256, lm>=0 ? ((lm&0xFF)*100)/256 : ((-lm)&0xFF)*100)/256;
+	sprintf(aux,"m=Left POF Port\r\n");
 	strcat(buff, aux);
-
 	ExtC22Write(0x15,13,0x001E);
 	ExtC22Write(0x15,14,0x0214);
 	ExtC22Write(0x15,13,0x401E);
 	reg = ExtC22Read(0x15, 14);
-	sprintf(aux, "    Sync       : 0x%x\r\n", reg);
-	strcat(buff, aux);
+	if (reg==0) {
+	  sprintf(aux, "a=Unconnected\r\n");
+	  strcat(buff, aux);
+	} else {
+          reg = (ExtC22Read(0x15, 1)&0x4)==0x4;
+	  if (reg) {
+	    lm = ExtC22Read(0x15, 19)&0x0FFF;
+	    if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
+	    lm=lm/3;
+
+	    cnt=0;
+	    ExtC22Write(0x15,29,0x8813);  // Ask partner
+	    while (ExtC22Read(0x15, 29)&0x8000) {cnt++;} // Wait answer
+	    lmr = ExtC22Read(0x15, 30)&0x0FFF;  // Read result
+	    if ((lmr&0x800)==0x800) lmr = lmr | 0xF000; // Sign extension
+	    lmr=lmr/3;
+	    sprintf(aux, "a=Link OK Margin: %d.%d / %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256, 
+	                                                           lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
+	    strcat(buff, aux);
+	  } else {
+	    sprintf(aux, "a=NO LINK\r\n");
+	    strcat(buff, aux);
+	  }
+	}
+
+	if (querier.valid) {
+		sprintf(aux,"m=IGMP %s\r\n", querier.port==0 ? "ETH Left": querier.port==1 ? "ETH Right": querier.port==0x10 ? "POF Left" : "POF Right" );
+		strcat(buff, aux);
+		sprintf(aux,"c=%d.%d.%d.%d\r\n", querier.src.b0, querier.src.b1, querier.src.b2, querier.src.b3);
+		strcat(buff, aux);
+		sprintf(aux,"a=Num services: %d\r\n", igmpNumServices());
+		strcat(buff, aux);
+		sprintf(aux,"/r/n");
+		strcat(buff, aux);
+	}
 
 	return strlen(buff);
 }
@@ -123,8 +169,8 @@ PROCESS_THREAD(announce_process, ev, data) {
         // SAP Message
 	message[SAP_V] = SAP_V_VER | SAP_V_A | SAP_V_R | SAP_V_T | SAP_V_E;
 	message[SAP_AUTH_LEN] = 0;
-        message[SAP_ID_HASH_H] = 0x01; // Put part of the serial number as hash ID
-        message[SAP_ID_HASH_L] = 0x23;
+        message[SAP_ID_HASH_H] = fw_version[1]; // Put part of the serial number as hash ID
+        message[SAP_ID_HASH_L] = serial_number[0];
 	p_addr = (uip_ipaddr_t *) (&message[SAP_SOURCE]);
         uip_ipaddr_copy(p_addr, &uip_hostaddr);
         sprintf (&message[SAP_TYPE], "text/plain");
@@ -146,7 +192,7 @@ PROCESS_THREAD(announce_process, ev, data) {
 		len_type = strlen(&message[SAP_TYPE]);
 		len_message = pof_info( &message[SAP_TYPE + len_type +1]);
 
-                printf("Sending broadcast to ipaddr=%d.%d.%d.%d\n", uip_ipaddr_to_quad(&addr));
+                printf("Sending broadcast to ipaddr=%d.%d.%d.%d at %ld ms\n", uip_ipaddr_to_quad(&addr), clock_time());
                 simple_udp_sendto(&broadcast_connection, message, len_message + len_type + SAP_TYPE, &addr);
 	}
 

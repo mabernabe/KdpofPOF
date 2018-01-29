@@ -181,6 +181,18 @@ unsigned char igmpPortVector(struct eth_addr *eth, int s) {
 	return port;
 }
 
+signed char igmpNumServices(void) {
+	int i;
+	int cnt=0;
+
+	for (i=0; i<IGMP_NUM_SERVICES; i++ ) {
+		if(igmpService[i].valid) {
+		   cnt++;
+		}
+	}
+	return cnt;
+}
+
 signed char igmpHowMany(struct eth_addr *eth, signed char port) {
 	int i;
 	int cnt=0;

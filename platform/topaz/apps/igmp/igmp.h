@@ -39,6 +39,7 @@ signed char igmpFindService(struct ip_addr *grp, struct ip_addr *client);
 signed char igmpFindGroup(struct ip_addr *grp);
 unsigned char igmpPortVector(struct eth_addr *eth, int s);
 signed char igmpHowMany(struct eth_addr *eth, signed char port);
+signed char igmpNumServices(void);
 
 
 #endif

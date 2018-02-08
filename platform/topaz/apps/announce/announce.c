@@ -18,8 +18,8 @@ PROCESS(announce_process, "Announce process");
 
 #define UDP_PORT 9875
 
-#define SEND_INTERVAL		(5 * CLOCK_SECOND)
-#define SEND_TIME		(random_rand() % (SEND_INTERVAL-CLOCK_SECOND))
+#define SEND_INTERVAL		(3 * CLOCK_SECOND)
+#define SEND_TIME		(random_rand() % ((SEND_INTERVAL*3)/4))
 
 static struct simple_udp_connection broadcast_connection;
 
@@ -139,8 +139,6 @@ static int pof_info(char *buff) {
 		strcat(buff, aux);
 		sprintf(aux,"a=Num services: %d\r\n", igmpNumServices());
 		strcat(buff, aux);
-		sprintf(aux,"/r/n");
-		strcat(buff, aux);
 	}
 
 	return strlen(buff);
@@ -152,7 +150,7 @@ static int pof_info(char *buff) {
 PROCESS_THREAD(announce_process, ev, data) {
         static struct etimer periodic_timer;
         static struct etimer send_timer;
-//	uip_ipaddr_t addr = { { 224, 2, 127, 254 } };
+	static struct ip_addr addr_igmp;
 	static uip_ipaddr_t addr;
 	static uint8_t message[48];
 	int len_type;
@@ -166,6 +164,11 @@ PROCESS_THREAD(announce_process, ev, data) {
 //	224.2.127.254
 //
         uip_ipaddr(&addr, 224,2,127,254);
+	addr_igmp.b0 = 224;
+	addr_igmp.b1 = 2;
+	addr_igmp.b2 = 127;
+	addr_igmp.b3 = 254;
+
         // SAP Message
 	message[SAP_V] = SAP_V_VER | SAP_V_A | SAP_V_R | SAP_V_T | SAP_V_E;
 	message[SAP_AUTH_LEN] = 0;
@@ -192,8 +195,10 @@ PROCESS_THREAD(announce_process, ev, data) {
 		len_type = strlen(&message[SAP_TYPE]);
 		len_message = pof_info( &message[SAP_TYPE + len_type +1]);
 
-                printf("Sending broadcast to ipaddr=%d.%d.%d.%d at %ld ms\n", uip_ipaddr_to_quad(&addr), clock_time());
-                simple_udp_sendto(&broadcast_connection, message, len_message + len_type + SAP_TYPE, &addr);
+		if (igmpFindGroup(&addr_igmp)>=0) {
+                	printf("Sending broadcast to ipaddr=%d.%d.%d.%d at %ld ms\n", uip_ipaddr_to_quad(&addr), clock_time());
+                	simple_udp_sendto(&broadcast_connection, message, len_message + len_type + SAP_TYPE + 1, &addr);
+		}
 	}
 
 	PROCESS_END();

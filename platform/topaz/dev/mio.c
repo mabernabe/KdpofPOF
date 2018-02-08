@@ -16,7 +16,11 @@ static volatile int first;
 static volatile int last;
 
 unsigned char write_busy() {
+#ifdef DEBUG_CONSOLE
 	return (COMM_STATUS & 0x10)==0x10;
+#else
+	return 0;
+#endif
 }
 
 int ll_printf (const char *format, ...)

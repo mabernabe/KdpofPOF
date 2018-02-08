@@ -14,4 +14,6 @@ void IO_putchar(char c);
 void ll_putchar(char c);
 int ll_printf(const char *format, ...);
 
+//#define DEBUG_CONSOLE 1
+
 #endif

@@ -1,0 +1,13 @@
+*.c~
+*.h~
+*.o
+*.sym
+*.adb
+/platform/topaz/obj_topaz/*.lst
+*.cdb
+*.lk
+*.noi
+*.un~
+*.asm
+*.rel
+*.sw*

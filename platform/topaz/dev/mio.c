@@ -39,7 +39,9 @@ int ll_printf (const char *format, ...)
 }
 
 void ll_putchar(char c) {
+#ifdef DEBUG_CONSOLE
 	while (0 != (COMM_STATUS & 0x10));
+#endif
 	COMM_WR_DATA = c;
 }
 
@@ -125,6 +127,7 @@ void html_putchar(char c) {
 }
 */
 
+#if defined(IO_TELNET)
 #include "telnetd.h"
 
 void telnet_putchar(char c) {
@@ -133,6 +136,7 @@ void telnet_putchar(char c) {
 		process_post(&telnetd_process, NEW_LINE_EVENT, NULL);
 	}
 }
+#endif
 
 void putchar(char c){
 #if defined(IO_CONSOLE)
@@ -140,11 +144,10 @@ void putchar(char c){
 //#elif defined(IO_HTML)
 //	html_putchar(c);
 #elif defined(IO_TELNET)
-	telnet_putchar(c);
-#else
 	if (connected) {
 		telnet_putchar(c);
 	}	
+#else
 	IO_putchar(c);
 #endif
 }
@@ -152,7 +155,9 @@ void putchar(char c){
 
 char getchar(void) {
 	char c = 0;
+#ifdef DEBUG_CONSOLE
 	while(0 == (COMM_STATUS & 0x01));
+#endif
 	c = COMM_RD_DATA;
 	return c;
 }

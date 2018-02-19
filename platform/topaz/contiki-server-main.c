@@ -10,7 +10,7 @@
 //#include "webserver-nogui.h"
 //#include "is-alive.h"
 #include "igmp.h"
-#include "telnetd.h"
+//#include "telnetd.h"
 #include "announce.h"
 #include "contiki-global.h"
 
@@ -19,7 +19,7 @@
 
 uip_lladdr_t eth_addr = { {0xff,0xff,0xff,0xff,0xff,0xff} };
 char serial_number[7]= "012345";
-unsigned char fw_version[2]={'2','0'};
+unsigned char fw_version[2]={'1','0'};
 //uip_ipaddr_t host_addr = { { 192, 168, 1, 250 } };
 //const uip_ipaddr_t def_route_addr = { { 192, 168, 1, 1 } };
 //const uip_ipaddr_t net_mask = { { 255, 255, 255, 0 } };
@@ -81,7 +81,20 @@ int main(void) {
   ll_putchar('6');
 
   // Get ETH Addr from EEPROM
-  //eeprom2ram(eth_addr.addr, (void *) 0xB, sizeof(eth_addr));
+  eeprom2ram(eth_addr.addr, (void *) 0xB, sizeof(eth_addr));
+  IO_putchar('\n');
+  IO_putchar('E');
+  IO_putchar('A');
+  IO_putchar(' ');
+  for (i=0; i<sizeof(eth_addr); i++) {
+	IO_putchar('0'+(eth_addr.addr[i]>>4));
+	IO_putchar('0'+(eth_addr.addr[i]&0xF));
+  	if (i<(sizeof(eth_addr)-1)) IO_putchar(':');
+  }
+  IO_putchar('\r');
+  IO_putchar('\n');
+
+  // Check ADDR
   if (eth_addr.addr[0]==0xFF) memcpy(eth_addr.addr, default_eth_addr.addr, sizeof(eth_addr));
   ll_putchar('7');
 
@@ -98,7 +111,7 @@ int main(void) {
   IO_putchar('\n');
 
   // Get Serial Number from EEPROM
-  //eeprom2ram(serial_number, (void *) 0x11, sizeof(serial_number));
+  eeprom2ram(serial_number, (void *) 0x11, sizeof(serial_number));
   IO_putchar('S');
   IO_putchar('N');
   IO_putchar(' ');
@@ -137,7 +150,7 @@ int main(void) {
   ll_putchar('E');
 //  process_start(&webserver_nogui_process, NULL);
   ll_putchar('F');
-  process_start(&telnetd_process, NULL);
+//  process_start(&telnetd_process, NULL);
   ll_putchar('G');
   process_start(&announce_process, NULL);
   ll_putchar('H');

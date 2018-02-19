@@ -3,11 +3,12 @@
 *.o
 *.sym
 *.adb
-/platform/topaz/obj_topaz/*.lst
+*.lst
 *.cdb
 *.lk
 *.noi
 *.un~
 *.asm
 *.rel
+*.bak
 *.sw*

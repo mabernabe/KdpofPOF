@@ -22,6 +22,7 @@ void print_help() {
 void pof_info() {
 
 	signed short lm;
+	signed short lmr;
 	signed short pwr;
 	unsigned short reg;
 
@@ -32,8 +33,16 @@ void pof_info() {
 
 	lm = ExtC22Read(0x10, 19)&0x0FFF;
 	if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
-	lm=lm/3;
-	printf("    Link Margin: %d.%d dB\r\n", lm/256, lm>=0 ? ((lm&0xFF)*100)/256 : ((-lm)&0xFF)*100)/256;
+	lm=lm*3;
+
+	ExtC22Write(0x10, 29, 0x8813);  // Ask partner
+	while (ExtC22Read(0x10, 29)&0x8000) {} // Wait answer
+	lmr = ExtC22Read(0x10, 30)&0x0FFF;  // Read result
+	if ((lmr&0x800)==0x800) lmr = lmr | 0xF000; // Sign extension
+	lmr=lmr*3;
+
+	printf("    Link Margin: %d.%d / %d.%d dB\r\n", lm/256, lm>=0 ? ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256,
+	                                                lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
 
 	/*
 	pwr = ExtC22Read(0x10, 23)&0x3FFF;
@@ -53,8 +62,16 @@ void pof_info() {
 
 	lm = ExtC22Read(0x15, 19)&0x0FFF;
 	if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
-	lm=lm/3;
-	printf("    Link Margin: %d.%d dB\r\n", lm/256, lm>=0 ? ((lm&0xFF)*100)/256 : ((-lm)&0xFF)*100)/256;
+	lm=lm*3;
+
+	ExtC22Write(0x15, 29, 0x8813);  // Ask partner
+	while (ExtC22Read(0x15, 29)&0x8000) {} // Wait answer
+	lmr = ExtC22Read(0x15, 30)&0x0FFF;  // Read result
+	if ((lmr&0x800)==0x800) lmr = lmr | 0xF000; // Sign extension
+	lmr=lmr*3;
+
+	printf("    Link Margin: %d.%d / %d.%d dB\r\n", lm/256, lm>=0 ? ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256,
+	                                                lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
 
 	/*
 	pwr = ExtC22Read(0x15, 23)&0x3FFF;

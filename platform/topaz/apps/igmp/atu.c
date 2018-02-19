@@ -140,7 +140,7 @@ void atuIgmpAdd(int s) {
 		atuEntry.ATUByte3 = igmpService[s].eth.b3;
 		atuEntry.ATUByte4 = igmpService[s].eth.b4; 
 		atuEntry.ATUByte5 = igmpService[s].eth.b5;
-/*
+
 		aux = igmpService[s].eth.b0;
 		atuEntry.ATUByte0 = aux;
 		aux = igmpService[s].eth.b1; //39-32
@@ -153,7 +153,7 @@ void atuIgmpAdd(int s) {
 		atuEntry.ATUByte4 = aux;
 		aux = igmpService[s].eth.b5;
 		atuEntry.ATUByte5 = aux;
-*/
+
 		atuEntry.EntryState_SPID = 7;
 		atuEntry.PortVec = portVector;
 		atuEntry.FID = 0;
@@ -178,7 +178,7 @@ void atuIgmpDel(int s) {
 		atuEntry.ATUByte3 = igmpService[s].eth.b3;
 		atuEntry.ATUByte4 = igmpService[s].eth.b4; 
 		atuEntry.ATUByte5 = igmpService[s].eth.b5;
-/*
+
 		aux = igmpService[s].eth.b0;
 		atuEntry.ATUByte0 = aux;
 		aux = igmpService[s].eth.b1; //39-32
@@ -191,7 +191,7 @@ void atuIgmpDel(int s) {
 		atuEntry.ATUByte4 = aux;
 		aux = igmpService[s].eth.b5;
 		atuEntry.ATUByte5 = aux;
-*/
+
 		atuEntry.EntryState_SPID = portVector==0 ? 0 : 7;
 		atuEntry.PortVec = portVector;
 		atuEntry.FID = 0;

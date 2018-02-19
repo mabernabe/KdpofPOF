@@ -144,6 +144,8 @@ signed char igmpForward(unsigned char *buff, unsigned short len) {
 		}
 		// If no querier to all ports but received port
 		else forward = ~(1<<port);
+
+		forward = ~(1<<port); // Test to forward SAP IGMP to all ports
 	}
 	// Leave
 	if(type == 0x17) {
@@ -155,6 +157,8 @@ signed char igmpForward(unsigned char *buff, unsigned short len) {
 		}
 		// If no querier to all ports but received port
 		else forward = ~(1<<port);
+
+		forward = ~(1<<port); // Test to forward SAP IGMP to all ports
 	} 
 //	printf ("Fwd (G:0x%02X Q:0x%02X) 0x%02X to 0x%02X\n", servicePort, querier.port, port, forward);
 	return forward;

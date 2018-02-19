@@ -18,7 +18,7 @@ PROCESS(announce_process, "Announce process");
 
 #define UDP_PORT 9875
 
-#define SEND_INTERVAL		(3 * CLOCK_SECOND)
+#define SEND_INTERVAL		(CLOCK_SECOND/2)
 #define SEND_TIME		(random_rand() % ((SEND_INTERVAL*3)/4))
 
 static struct simple_udp_connection broadcast_connection;
@@ -54,14 +54,15 @@ static int pof_info(char *buff) {
 
 	signed short lm, lmr;
 	unsigned short reg;
-	char aux[80];
+	char aux[256];
 	int cnt=0;
+	int i=0;
 
 	buff[0]=0;
 
 	sprintf(aux,"v=0\r\n");
 	strcat(buff, aux);
-	sprintf(aux,"o=Movistar FW: %d.%d SN: %s MAC: %02x:%02x:%02x:%02x:%02x:%02x\r\n", 
+	sprintf(aux,"o=Movistar FW: %c.%c SN: %s MAC: %02x:%02x:%02x:%02x:%02x:%02x\r\n", 
 			fw_version[0], fw_version[1], serial_number, 
 			eth_addr.addr[0], eth_addr.addr[1],
 			eth_addr.addr[2], eth_addr.addr[3],
@@ -84,19 +85,33 @@ static int pof_info(char *buff) {
           reg = (ExtC22Read(0x10, 1)&0x4)==0x4;
 	  if (reg) {
 	    lm = ExtC22Read(0x10, 19)&0x0FFF;
+	    //printf("lm: 0x%X\r\n", lm);
 	    if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
-	    lm=lm/3;
+	    lm=lm*3;
 
+	    cnt=0;
 	    ExtC22Write(0x10, 29, 0x8813);  // Ask partner
-	    while (ExtC22Read(0x10, 29)&0x8000) {} // Wait answer
+	    while (ExtC22Read(0x10, 29)&0x8000 && cnt<5000) {cnt++;} // Wait answer
 	    lmr = ExtC22Read(0x10, 30)&0x0FFF;  // Read result
 	    if ((lmr&0x800)==0x800) lmr = lmr | 0xF000; // Sign extension
-	    lmr=lmr/3;
+	    lmr=lmr*3;
+	    //printf("lmr: 0x%X\r\n", lmr);
+	    //printf("a=Link OK Margin: %d.%d / %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256, 
+	    //                                                       lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
 	    sprintf(aux, "a=Link OK Margin: %d.%d / %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256, 
 	                                                           lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
 	    strcat(buff, aux);
 	  } else {
+#if 1
+	    lm = ExtC22Read(0x10, 19)&0x0FFF;
+	    //printf("lm: 0x%X\r\n", lm);
+	    if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
+	    lm=lm*3;
+
+	    sprintf(aux, "a=NO LINK Margin: %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256 );
+#else
 	    sprintf(aux, "a=NO LINK\r\n");
+#endif
 	    strcat(buff, aux);
 	  }
 	}
@@ -114,32 +129,76 @@ static int pof_info(char *buff) {
           reg = (ExtC22Read(0x15, 1)&0x4)==0x4;
 	  if (reg) {
 	    lm = ExtC22Read(0x15, 19)&0x0FFF;
+	    //printf("lm: 0x%X\r\n", lm);
 	    if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
-	    lm=lm/3;
+	    lm=lm*3;
 
 	    cnt=0;
 	    ExtC22Write(0x15,29,0x8813);  // Ask partner
-	    while (ExtC22Read(0x15, 29)&0x8000) {cnt++;} // Wait answer
+	    while (ExtC22Read(0x15, 29)&0x8000 && cnt<5000) {cnt++;} // Wait answer
 	    lmr = ExtC22Read(0x15, 30)&0x0FFF;  // Read result
 	    if ((lmr&0x800)==0x800) lmr = lmr | 0xF000; // Sign extension
-	    lmr=lmr/3;
+	    lmr=lmr*3;
+	    //printf("lmr: 0x%X\r\n", lmr);
+	    //printf("a=Link OK Margin: %d.%d / %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256, 
+	    //                                                       lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
 	    sprintf(aux, "a=Link OK Margin: %d.%d / %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256, 
 	                                                           lmr/256, lmr>=0 ? ((lmr&0xFF)*100)/256 : (((-lmr)&0xFF)*100)/256);
 	    strcat(buff, aux);
 	  } else {
+#if 1
+	    lm = ExtC22Read(0x10, 19)&0x0FFF;
+	    //printf("lm: 0x%X\r\n", lm);
+	    if ((lm&0x800)==0x800) lm = lm | 0xF000; // Sign extension
+	    lm=lm*3;
+
+	    sprintf(aux, "a=NO LINK Margin: %d.%d dB\r\n", lm/256,  lm>=0 ?  ((lm&0xFF)*100)/256 : (((-lm)&0xFF)*100)/256 );
+#else
 	    sprintf(aux, "a=NO LINK\r\n");
+#endif
 	    strcat(buff, aux);
 	  }
 	}
 
-	if (querier.valid) {
-		sprintf(aux,"m=IGMP %s\r\n", querier.port==0 ? "ETH Left": querier.port==1 ? "ETH Right": querier.port==0x10 ? "POF Left" : "POF Right" );
+	if(querier.valid ) {
+		sprintf(aux,"m=IGMP %s\r\n", querier.port==0 ? "ETH Left": querier.port==1 ? "ETH Right": querier.port==0x15 ? "POF Left" : "POF Right" );
 		strcat(buff, aux);
-		sprintf(aux,"c=%d.%d.%d.%d\r\n", querier.src.b0, querier.src.b1, querier.src.b2, querier.src.b3);
+		sprintf(aux, "c=%d.%d.%d.%d Port: %d Time: %d Period: %d\r\n", querier.src.b0, querier.src.b1, querier.src.b2, querier.src.b3, querier.port, querier.timeout, querier.period);
 		strcat(buff, aux);
-		sprintf(aux,"a=Num services: %d\r\n", igmpNumServices());
+		sprintf(aux,"a=Num_services: %d\r\n", igmpNumServices());
 		strcat(buff, aux);
+#if 0
+		for (i=0; i<IGMP_NUM_SERVICES; i++) {
+			if (igmpService[i].valid) {
+				sprintf(aux, "a=Svc: %d Grp: %d.%d.%d.%d Eth: %02x:%02x:%02x:%02x:%02x:%02x Prt: %d\r\n",i,
+					igmpService[i].grp.b0, igmpService[i].grp.b1, igmpService[i].grp.b2, igmpService[i].grp.b3,
+					igmpService[i].eth.b0, igmpService[i].eth.b1, igmpService[i].eth.b2, igmpService[i].eth.b3, 
+					igmpService[i].eth.b4, igmpService[i].eth.b5,
+					igmpService[i].to
+					);
+				strcat(buff, aux);
+			}
+		}
+#endif
+#if 0
+//		for (i=0; i<IGMP_NUM_SERVICES; i++) {
+		for (i=0; i<1; i++) {
+			if (igmpService[i].valid) {
+				sprintf(aux, "a=Service: %d Grp: %d.%d.%d.%d Eth: %02x:%02x:%02x:%02x:%02x:%02x Port: %d Client: %d.%d.%d.%d Time: %d\r\n", i,
+					igmpService[i].grp.b0, igmpService[i].grp.b1, igmpService[i].grp.b2, igmpService[i].grp.b3, 
+					igmpService[i].eth.b0, igmpService[i].eth.b1, igmpService[i].eth.b2, igmpService[i].eth.b3, 
+					igmpService[i].eth.b4, igmpService[i].eth.b5, 
+					igmpService[i].to,
+					igmpService[i].client.b0, igmpService[i].client.b1, igmpService[i].client.b2, 
+					igmpService[i].client.b3, 
+					igmpService[i].timeout);
+				strcat(buff, aux);
+			}
+	
+		}
+#endif
 	}
+	printf ("Msg %d \r\n", strlen(buff));
 
 	return strlen(buff);
 }
@@ -152,7 +211,7 @@ PROCESS_THREAD(announce_process, ev, data) {
         static struct etimer send_timer;
 	static struct ip_addr addr_igmp;
 	static uip_ipaddr_t addr;
-	static uint8_t message[48];
+	static uint8_t message[750];
 	int len_type;
 	int len_message;
 	uip_ipaddr_t *p_addr;
@@ -196,7 +255,7 @@ PROCESS_THREAD(announce_process, ev, data) {
 		len_message = pof_info( &message[SAP_TYPE + len_type +1]);
 
 		if (igmpFindGroup(&addr_igmp)>=0) {
-                	printf("Sending broadcast to ipaddr=%d.%d.%d.%d at %ld ms\n", uip_ipaddr_to_quad(&addr), clock_time());
+//                	printf("Sending broadcast to ipaddr=%d.%d.%d.%d at %ld ms\n", uip_ipaddr_to_quad(&addr), clock_time());
                 	simple_udp_sendto(&broadcast_connection, message, len_message + len_type + SAP_TYPE + 1, &addr);
 		}
 	}
